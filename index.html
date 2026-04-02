@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WT20I Win Probability — Sports Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ─────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #0a0f0d;
+  --surface:    #111a15;
+  --surface2:   #18261c;
+  --border:     #1e3024;
+  --border2:    #2a4533;
+  --accent:     #00e87a;
+  --accent2:    #00b35c;
+  --accent-dim: rgba(0,232,122,0.08);
+  --accent-glow:rgba(0,232,122,0.15);
+  --text:       #e8f0ea;
+  --text2:      #8fa898;
+  --text3:      #536b5c;
+  --danger:     #ff4d6d;
+  --warn:       #ffa940;
+  --radius:     12px;
+  --radius-sm:  8px;
+  --transition: 200ms cubic-bezier(0.4,0,0.2,1);
+}
+
+html { font-size: 16px; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Background texture ────────────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(0,232,122,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,179,92,0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Layout ────────────────────────────────────────────────────────────────── */
+.wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────────── */
+header {
+  margin-bottom: 48px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.brand-dot {
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.85); }
+}
+
+.brand-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.7;
+  max-width: 560px;
+}
+
+/* ── Model status bar ──────────────────────────────────────────────────────── */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 8px 14px;
+  background: var(--accent-dim);
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  width: fit-content;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+}
+
+.status-bar.loading { color: var(--warn); border-color: rgba(255,169,64,0.3); background: rgba(255,169,64,0.06); }
+.status-bar.error   { color: var(--danger); border-color: rgba(255,77,109,0.3); background: rgba(255,77,109,0.06); }
+
+/* ── Tab navigation ────────────────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 32px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text3);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  letter-spacing: 0.02em;
+}
+
+.tab-btn.active {
+  background: var(--surface2);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.tab-btn:hover:not(.active) { color: var(--text2); }
+
+/* ── Panel ─────────────────────────────────────────────────────────────────── */
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn 200ms ease; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Form grid ─────────────────────────────────────────────────────────────── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 580px) { .form-grid { grid-template-columns: 1fr; } }
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.full { grid-column: 1 / -1; }
+
+label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+input[type="number"],
+select {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  transition: border-color var(--transition);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+input[type="number"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+input[type="number"]::placeholder { color: var(--text3); }
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238fa898' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+select option { background: var(--surface); }
+
+/* ── Overs input ───────────────────────────────────────────────────────────── */
+.overs-row {
+  display: grid;
+  grid-template-columns: 1fr 80px;
+  gap: 8px;
+}
+
+.overs-row input:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.overs-row input:last-child  { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; border-left: none; text-align: center; }
+
+/* ── Toggle switches ───────────────────────────────────────────────────────── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+
+.toggle-row:hover { border-color: var(--border2); }
+
+.toggle-label {
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.toggle {
+  position: relative;
+  width: 36px; height: 20px;
+  flex-shrink: 0;
+}
+
+.toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--border2);
+  border-radius: 100px;
+  transition: background var(--transition);
+}
+
+.toggle input:checked ~ .toggle-track { background: var(--accent2); }
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px;
+  background: white;
+  border-radius: 50%;
+  transition: transform var(--transition);
+}
+
+.toggle input:checked ~ .toggle-thumb { transform: translateX(16px); }
+
+/* ── Calculate button ──────────────────────────────────────────────────────── */
+.calc-btn {
+  width: 100%;
+  padding: 14px 24px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #0a0f0d;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.calc-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0);
+  transition: background var(--transition);
+}
+
+.calc-btn:hover { background: #00ff88; box-shadow: 0 0 24px rgba(0,232,122,0.35); }
+.calc-btn:active::after { background: rgba(0,0,0,0.08); }
+.calc-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Result card ───────────────────────────────────────────────────────────── */
+.result-card {
+  margin-top: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  animation: slideUp 250ms ease;
+}
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.result-main {
+  padding: 32px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.result-team {
+  flex: 1;
+  min-width: 160px;
+}
+
+.result-team-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 6px;
+}
+
+.result-team-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.result-prob {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(48px, 10vw, 72px);
+  line-height: 1;
+  color: var(--accent);
+  text-shadow: 0 0 40px rgba(0,232,122,0.2);
+  transition: color 400ms ease;
+}
+
+.result-prob.low  { color: var(--danger); text-shadow: 0 0 40px rgba(255,77,109,0.2); }
+.result-prob.mid  { color: var(--warn);   text-shadow: 0 0 40px rgba(255,169,64,0.2); }
+
+.result-divider {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  text-align: center;
+  padding: 0 8px;
+  align-self: center;
+}
+
+/* ── Probability bar ───────────────────────────────────────────────────────── */
+.prob-bar-wrapper { padding: 0 32px 20px; }
+
+.prob-bar-track {
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.prob-bar-fill {
+  height: 100%;
+  border-radius: 100px;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  transition: width 600ms cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 0 8px rgba(0,232,122,0.4);
+}
+
+/* ── Context chips ─────────────────────────────────────────────────────────── */
+.context-row {
+  padding: 16px 32px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.chip {
+  padding: 4px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.chip.highlight {
+  border-color: var(--border2);
+  color: var(--text);
+}
+
+/* ── Interpretation ────────────────────────────────────────────────────────── */
+.interpretation {
+  padding: 16px 32px 24px;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
+}
+
+.interpretation strong { color: var(--text); font-weight: 500; }
+
+/* ── Error message ─────────────────────────────────────────────────────────── */
+.error-msg {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: rgba(255,77,109,0.08);
+  border: 1px solid rgba(255,77,109,0.25);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  font-size: 13px;
+  display: none;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────────── */
+footer {
+  margin-top: 60px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.footer-left { font-size: 12px; color: var(--text3); }
+.footer-left strong { color: var(--text2); font-weight: 500; }
+
+.model-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 3px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.06em;
+}
+
+.badge.green { border-color: var(--border2); color: var(--accent2); }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <span class="brand-name">Sports Intelligence</span>
+    </div>
+    <h1>Women's T20I<br><em>Win Probability</em></h1>
+    <p class="subtitle">
+      Ball-by-ball win probability for Women's T20 Internationals.
+      Trained on 634 Full Member matches (2009–2025) using separate
+      first and second innings models.
+    </p>
+    <div class="status-bar loading" id="statusBar">
+      ◌ &nbsp;Loading model…
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" role="tab" onclick="switchTab('inn1', this)">First Innings</button>
+    <button class="tab-btn" role="tab" onclick="switchTab('inn2', this)">Second Innings</button>
+  </div>
+
+  <!-- ── First Innings Panel ─────────────────────────────────────────────── -->
+  <div class="panel active" id="panel-inn1">
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Runs Scored</label>
+        <input type="number" id="i1-runs" min="0" max="300" placeholder="e.g. 85" inputmode="numeric">
+      </div>
+
+      <div class="form-group">
+        <label>Wickets Fallen</label>
+        <input type="number" id="i1-wickets" min="0" max="9" placeholder="0–9" inputmode="numeric">
+      </div>
+
+      <div class="form-group">
+        <label>Overs Bowled</label>
+        <div class="overs-row">
+          <input type="number" id="i1-overs" min="0" max="19" placeholder="Overs (0–19)" inputmode="numeric">
+          <input type="number" id="i1-balls" min="0" max="5" placeholder="Balls" inputmode="numeric">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Venue</label>
+        <select id="i1-venue">
+          <option value="133">Generic / Unknown</option>
+          <option value="148">Junction Oval, Melbourne</option>
+          <option value="142">Newlands, Cape Town</option>
+          <option value="145">Eden Gardens, Kolkata</option>
+          <option value="147">Wankhede Stadium, Mumbai</option>
+          <option value="140">Edgbaston, Birmingham</option>
+          <option value="138">County Ground</option>
+          <option value="138">Providence Stadium, Guyana</option>
+          <option value="135">Sir Vivian Richards Stadium</option>
+          <option value="132">Sylhet Stadium</option>
+          <option value="133">Sylhet International Cricket Stadium</option>
+          <option value="130">R Premadasa Stadium, Colombo</option>
+          <option value="128">Galle International Stadium</option>
+          <option value="130">Sharjah Cricket Stadium</option>
+          <option value="128">Dubai International Cricket Stadium</option>
+          <option value="125">Kinrara Academy Oval</option>
+          <option value="130">Pembroke Cricket Club, Dublin</option>
+          <option value="132">Buffalo Park, East London</option>
+          <option value="135">Boland Park</option>
+        </select>
+      </div>
+
+      <div class="form-group full">
+        <label class="toggle-row" for="i1-wc">
+          <span class="toggle-label">ICC Women's T20 World Cup match</span>
+          <span class="toggle">
+            <input type="checkbox" id="i1-wc">
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </span>
+        </label>
+      </div>
+
+    </div>
+
+    <div class="error-msg" id="i1-error"></div>
+    <button class="calc-btn" id="i1-btn" onclick="calcInn1()" disabled>
+      Calculate Win Probability
+    </button>
+
+    <div id="i1-result"></div>
+  </div>
+
+  <!-- ── Second Innings Panel ───────────────────────────────────────────────── -->
+  <div class="panel" id="panel-inn2">
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Target (runs to win)</label>
+        <input type="number" id="i2-target" min="1" max="400" placeholder="e.g. 148" inputmode="numeric">
+      </div>
+
+      <div class="form-group">
+        <label>Current Score</label>
+        <input type="number" id="i2-score" min="0" max="400" placeholder="e.g. 52" inputmode="numeric">
+      </div>
+
+      <div class="form-group">
+        <label>Wickets Fallen</label>
+        <input type="number" id="i2-wickets" min="0" max="9" placeholder="0–9" inputmode="numeric">
+      </div>
+
+      <div class="form-group">
+        <label>Overs Bowled</label>
+        <div class="overs-row">
+          <input type="number" id="i2-overs" min="0" max="19" placeholder="Overs (0–19)" inputmode="numeric">
+          <input type="number" id="i2-balls" min="0" max="5" placeholder="Balls" inputmode="numeric">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Venue</label>
+        <select id="i2-venue">
+          <option value="133">Generic / Unknown</option>
+          <option value="148">Junction Oval, Melbourne</option>
+          <option value="142">Newlands, Cape Town</option>
+          <option value="145">Eden Gardens, Kolkata</option>
+          <option value="147">Wankhede Stadium, Mumbai</option>
+          <option value="140">Edgbaston, Birmingham</option>
+          <option value="138">County Ground</option>
+          <option value="138">Providence Stadium, Guyana</option>
+          <option value="135">Sir Vivian Richards Stadium</option>
+          <option value="132">Sylhet Stadium</option>
+          <option value="133">Sylhet International Cricket Stadium</option>
+          <option value="130">R Premadasa Stadium, Colombo</option>
+          <option value="128">Galle International Stadium</option>
+          <option value="130">Sharjah Cricket Stadium</option>
+          <option value="128">Dubai International Cricket Stadium</option>
+          <option value="125">Kinrara Academy Oval</option>
+          <option value="130">Pembroke Cricket Club, Dublin</option>
+          <option value="132">Buffalo Park, East London</option>
+          <option value="135">Boland Park</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Toss</label>
+        <select id="i2-toss">
+          <option value="0">Chasing team lost toss</option>
+          <option value="1">Chasing team won toss &amp; chose to field</option>
+          <option value="2">Chasing team won toss &amp; chose to bat</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Home / Away</label>
+        <select id="i2-home">
+          <option value="0">Away / Neutral venue</option>
+          <option value="1">Chasing team at home</option>
+        </select>
+      </div>
+
+      <div class="form-group full">
+        <label class="toggle-row" for="i2-wc">
+          <span class="toggle-label">ICC Women's T20 World Cup match</span>
+          <span class="toggle">
+            <input type="checkbox" id="i2-wc">
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </span>
+        </label>
+      </div>
+
+    </div>
+
+    <div class="error-msg" id="i2-error"></div>
+    <button class="calc-btn" id="i2-btn" onclick="calcInn2()" disabled>
+      Calculate Win Probability
+    </button>
+
+    <div id="i2-result"></div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-left">
+      <strong>Sports Intelligence</strong> · WT20I Win Probability v1.0<br>
+      634 Full Member matches · 2009–2025 · Ball-by-ball Cricsheet data
+    </div>
+    <div class="model-badges">
+      <span class="badge green">Inn1 AUC 0.749</span>
+      <span class="badge green">Inn2 AUC 0.930</span>
+      <span class="badge">XGBoost + LR</span>
+      <span class="badge">Isotonic calibration</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════════
+// MODEL INFERENCE ENGINE
+// ══════════════════════════════════════════════════════════════════════════════
+
+let MODEL = null;
+
+// ── Load artifacts JSON ───────────────────────────────────────────────────────
+// INSTRUCTION: replace the path below with the URL or relative path to
+// wt20i_html_artifacts.json when deploying to your subdomain.
+// For local testing, run a local server: python -m http.server 8000
+// then open http://localhost:8000/wt20i_calculator.html
+const ARTIFACTS_URL = './wt20i_html_artifacts.json';
+
+async function loadModel() {
+  const bar = document.getElementById('statusBar');
+  try {
+    bar.className = 'status-bar loading';
+    bar.textContent = '◌  Loading model…';
+
+    const resp = await fetch(ARTIFACTS_URL);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    MODEL = await resp.json();
+
+    bar.className = 'status-bar';
+    bar.innerHTML = `&#10003;&nbsp; Model ready · Inn1 AUC ${MODEL.meta.inn1_auc} · Inn2 AUC ${MODEL.meta.inn2_auc}`;
+
+    document.getElementById('i1-btn').disabled = false;
+    document.getElementById('i2-btn').disabled = false;
+  } catch (e) {
+    bar.className = 'status-bar error';
+    bar.textContent = '✕  Failed to load model — check ARTIFACTS_URL path';
+    console.error('Model load error:', e);
+  }
+}
+
+// ── Isotonic calibration interpolation ───────────────────────────────────────
+function isotonicCalibrate(rawProb, calTables) {
+  // Average across all CV folds
+  let sum = 0;
+  for (const table of calTables) {
+    const X = table.X, y = table.y;
+    const n = X.length;
+    if (rawProb <= X[0]) { sum += y[0]; continue; }
+    if (rawProb >= X[n-1]) { sum += y[n-1]; continue; }
+    // Binary search for interpolation bracket
+    let lo = 0, hi = n - 1;
+    while (hi - lo > 1) {
+      const mid = (lo + hi) >> 1;
+      if (X[mid] <= rawProb) lo = mid; else hi = mid;
+    }
+    const t = (rawProb - X[lo]) / (X[hi] - X[lo]);
+    sum += y[lo] + t * (y[hi] - y[lo]);
+  }
+  return Math.min(0.99, Math.max(0.01, sum / calTables.length));
+}
+
+// ── Inn1: logistic regression inference ──────────────────────────────────────
+function inn1Predict(features) {
+  const m = MODEL.inn1;
+  // Standardise
+  const scaled = features.map((v, i) => (v - m.scaler_mean[i]) / m.scaler_scale[i]);
+  // Logit
+  let logit = m.intercept;
+  for (let i = 0; i < m.coef.length; i++) logit += m.coef[i] * scaled[i];
+  // Sigmoid → raw prob
+  const rawProb = 1 / (1 + Math.exp(-logit));
+  // Isotonic calibration
+  return isotonicCalibrate(rawProb, m.cal_tables);
+}
+
+// ── Inn2: XGBoost tree traversal ─────────────────────────────────────────────
+function inn2Predict(features) {
+  const m = MODEL.inn2;
+  const BASE_SCORE = m.base_score;
+  let score = 0;
+
+  for (const tree of m.trees) {
+    // Traverse flat-array XGBoost tree
+    let node = 0;
+    while (tree.lc[node] !== -1) {  // -1 = leaf
+      const featIdx = tree.si[node];
+      const threshold = tree.sc[node];
+      const featVal = features[featIdx];
+      // Handle missing: use default_left direction
+      if (featVal === undefined || featVal === null || isNaN(featVal)) {
+        node = tree.dl[node] ? tree.lc[node] : tree.rc[node];
+      } else {
+        node = featVal < threshold ? tree.lc[node] : tree.rc[node];
+      }
+    }
+    score += tree.bw[node];
+  }
+
+  // XGBoost binary:logistic: apply sigmoid to (base_score_logit + sum_of_leaf_weights)
+  const baseLogit = Math.log(BASE_SCORE / (1 - BASE_SCORE));
+  const rawProb = 1 / (1 + Math.exp(-(baseLogit + score)));
+
+  // Isotonic calibration
+  return isotonicCalibrate(rawProb, m.cal_tables);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FEATURE ENGINEERING
+// Feature order must match training exactly — see artifacts meta.features
+// ══════════════════════════════════════════════════════════════════════════════
+
+function buildInn1Features({ runs, wickets, balls_bowled, venue_par }) {
+  const balls_remaining = 120 - balls_bowled;
+  const overs_bowled = balls_bowled / 6;
+
+  const crr = overs_bowled > 0 ? runs / overs_bowled : 0;
+  const projected_score = Math.min(crr * 20, 300);
+  const score_vs_par = Math.max(-80, Math.min(80, projected_score - venue_par));
+  const runs_per_wicket = wickets > 0 ? runs / wickets : runs;
+
+  const over_num = Math.floor(balls_bowled / 6) + 1;
+  const is_pp  = over_num <= 6  ? 1 : 0;
+  const is_mid = over_num >= 7 && over_num <= 15 ? 1 : 0;
+  const is_dth = over_num >= 16 ? 1 : 0;
+
+  const wkts_x_pp  = wickets * is_pp;
+  const wkts_x_dth = wickets * is_dth;
+
+  // Feature order: state_runs, state_wickets, state_balls_remaining,
+  //                crr, projected_score, runs_per_wicket,
+  //                is_pp, is_mid, is_dth, wkts_x_pp, wkts_x_dth, score_vs_par
+  return [runs, wickets, balls_remaining, crr, projected_score, runs_per_wicket,
+          is_pp, is_mid, is_dth, wkts_x_pp, wkts_x_dth, score_vs_par];
+}
+
+function buildInn2Features({
+  runs_required, balls_remaining, wickets_remaining,
+  venue_par, target, chaser_won_toss, chaser_chose_to_chase,
+  batting_home, is_world_cup
+}) {
+  const overs_remaining = balls_remaining / 6;
+  const balls_bowled    = 120 - balls_remaining;
+  const overs_done      = balls_bowled / 6;
+  const current_runs    = target - runs_required;
+
+  const rrr_safe = Math.min(overs_remaining > 0 ? runs_required / overs_remaining : 36, 36);
+  const crr_safe = overs_done > 0 ? current_runs / overs_done : 0;
+
+  // Pressure — neutral in first over
+  let pressure;
+  if (balls_bowled < 6) {
+    pressure = 1.0;
+  } else {
+    pressure = crr_safe > 0 ? Math.min(rrr_safe / crr_safe, 20) : 20;
+  }
+
+  const rpwn = Math.min(wickets_remaining > 0 ? runs_required / wickets_remaining : runs_required, 30);
+  const bprn = Math.min(Math.max(runs_required > 0 ? balls_remaining / runs_required : 10, 0.05), 10);
+
+  const over_num  = Math.floor(balls_bowled / 6) + 1;
+  const is_pp     = over_num <= 6 ? 1 : 0;
+  const is_mid    = over_num >= 7 && over_num <= 15 ? 1 : 0;
+  const is_dth    = over_num >= 16 ? 1 : 0;
+  const wickets_fallen = 10 - wickets_remaining;
+  const wkts_x_mid    = wickets_fallen * is_mid;
+
+  const target_vs_par = Math.max(-80, Math.min(80, target - venue_par));
+
+  // Feature order: runs_required, state_balls_remaining, state_wickets_remaining,
+  //                rrr_safe, crr_safe, pressure,
+  //                runs_per_wicket_needed, balls_per_run_needed,
+  //                is_pp, is_mid, is_dth, wkts_x_mid,
+  //                venue_par, target_vs_par,
+  //                chaser_won_toss, chaser_chose_to_chase,
+  //                batting_home, is_world_cup
+  return [
+    runs_required, balls_remaining, wickets_remaining,
+    rrr_safe, crr_safe, pressure,
+    rpwn, bprn,
+    is_pp, is_mid, is_dth, wkts_x_mid,
+    venue_par, target_vs_par,
+    chaser_won_toss, chaser_chose_to_chase,
+    batting_home, is_world_cup
+  ];
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// UI HANDLERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id + '-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+function getOverballs(oversId, ballsId) {
+  const overs = parseInt(document.getElementById(oversId).value) || 0;
+  const balls = parseInt(document.getElementById(ballsId).value) || 0;
+  return overs * 6 + Math.min(balls, 5);
+}
+
+function interpret(prob, context) {
+  if (context === 'inn1') {
+    if (prob >= 0.80) return 'The batting team is in a commanding position and well on track for a match-winning total.';
+    if (prob >= 0.65) return 'The batting team has the advantage, though the match remains in play.';
+    if (prob >= 0.45) return 'The match is evenly poised — both teams have a realistic chance.';
+    if (prob >= 0.30) return 'The batting team is under pressure and needs to accelerate significantly.';
+    return 'The batting team faces a very difficult path to a competitive total.';
+  } else {
+    if (prob >= 0.85) return 'The chasing team is in full control and should complete the chase comfortably.';
+    if (prob >= 0.65) return 'The chase is progressing well — the chasing team has the upper hand.';
+    if (prob >= 0.40) return 'A tight finish is likely — this match could go either way.';
+    if (prob >= 0.20) return 'The chasing team faces a tough ask and will need something special.';
+    return 'The defending team is in a very strong position. The chase is extremely difficult.';
+  }
+}
+
+function probColor(prob) {
+  if (prob >= 0.60) return '';
+  if (prob >= 0.35) return 'mid';
+  return 'low';
+}
+
+function renderResult(containerId, prob, teamLabel, opponentLabel, chips, context) {
+  const pct = Math.round(prob * 100);
+  const oppPct = 100 - pct;
+  const color = probColor(prob);
+
+  document.getElementById(containerId).innerHTML = `
+    <div class="result-card">
+      <div class="result-main">
+        <div class="result-team">
+          <div class="result-team-label">${teamLabel} win probability</div>
+          <div class="result-prob ${color}">${pct}%</div>
+        </div>
+        <div class="result-divider">vs</div>
+        <div class="result-team" style="text-align:right">
+          <div class="result-team-label">${opponentLabel} win probability</div>
+          <div class="result-prob ${probColor(1 - prob)}">${oppPct}%</div>
+        </div>
+      </div>
+      <div class="prob-bar-wrapper">
+        <div class="prob-bar-track">
+          <div class="prob-bar-fill" style="width:${pct}%"></div>
+        </div>
+      </div>
+      <div class="context-row">
+        ${chips.map(c => `<span class="chip ${c.highlight ? 'highlight' : ''}">${c.label}</span>`).join('')}
+      </div>
+      <div class="interpretation">${interpret(prob, context)}</div>
+    </div>`;
+}
+
+// ── Inn1 calculation ──────────────────────────────────────────────────────────
+function calcInn1() {
+  if (!MODEL) return;
+  document.getElementById('i1-error').style.display = 'none';
+
+  const runs     = parseInt(document.getElementById('i1-runs').value);
+  const wickets  = parseInt(document.getElementById('i1-wickets').value);
+  const venue_par = parseInt(document.getElementById('i1-venue').value);
+  const is_wc   = document.getElementById('i1-wc').checked ? 1 : 0;
+  const balls_bowled = getOverballs('i1-overs', 'i1-balls');
+
+  // Validation
+  if (isNaN(runs) || runs < 0)         return showError('i1', 'Enter a valid runs total (0 or more)');
+  if (isNaN(wickets) || wickets < 0 || wickets > 9) return showError('i1', 'Wickets must be between 0 and 9');
+  if (balls_bowled <= 0)                return showError('i1', 'Enter a valid overs/balls bowled (must be > 0)');
+  if (balls_bowled >= 120)              return showError('i1', 'Overs bowled must be less than 20');
+
+  const features = buildInn1Features({ runs, wickets, balls_bowled, venue_par });
+  const prob = inn1Predict(features);
+
+  const balls_remaining = 120 - balls_bowled;
+  const overs_bowled = balls_bowled / 6;
+  const crr = overs_bowled > 0 ? (runs / overs_bowled).toFixed(2) : '0.00';
+  const over_str = `${Math.floor(balls_bowled / 6)}.${balls_bowled % 6}`;
+  const rem_str  = `${Math.floor(balls_remaining / 6)}.${balls_remaining % 6}`;
+  const proj = Math.round(Math.min((runs / overs_bowled) * 20, 300));
+
+  const chips = [
+    { label: `${runs}/${wickets} off ${over_str} overs`, highlight: true },
+    { label: `CRR: ${crr}` },
+    { label: `Proj: ${proj}` },
+    { label: `${rem_str} overs remaining` },
+    ...(is_wc ? [{ label: '🏆 World Cup' }] : []),
+  ];
+
+  renderResult('i1-result', prob, 'Batting team', 'Bowling team', chips, 'inn1');
+}
+
+// ── Inn2 calculation ──────────────────────────────────────────────────────────
+function calcInn2() {
+  if (!MODEL) return;
+  document.getElementById('i2-error').style.display = 'none';
+
+  const target   = parseInt(document.getElementById('i2-target').value);
+  const score    = parseInt(document.getElementById('i2-score').value) || 0;
+  const wickets  = parseInt(document.getElementById('i2-wickets').value);
+  const venue_par = parseInt(document.getElementById('i2-venue').value);
+  const toss_val = parseInt(document.getElementById('i2-toss').value);
+  const home_val = parseInt(document.getElementById('i2-home').value);
+  const is_wc   = document.getElementById('i2-wc').checked ? 1 : 0;
+  const balls_bowled = getOverballs('i2-overs', 'i2-balls');
+
+  // Validation
+  if (isNaN(target) || target < 1)      return showError('i2', 'Enter a valid target (1 or more)');
+  if (isNaN(wickets) || wickets < 0 || wickets > 9) return showError('i2', 'Wickets must be between 0 and 9');
+  if (balls_bowled < 0 || balls_bowled >= 120) return showError('i2', 'Enter valid overs/balls bowled (0–19.5)');
+  if (score >= target)                  return showError('i2', 'Current score must be less than target');
+
+  const runs_required    = target - score;
+  const balls_remaining  = 120 - balls_bowled;
+  const wickets_remaining = 10 - wickets;
+  const chaser_won_toss      = toss_val >= 1 ? 1 : 0;
+  const chaser_chose_to_chase = toss_val === 1 ? 1 : 0;
+  const batting_home = home_val;
+
+  if (balls_remaining <= 0) return showError('i2', 'No balls remaining — match has ended');
+
+  const features = buildInn2Features({
+    runs_required, balls_remaining, wickets_remaining,
+    venue_par, target,
+    chaser_won_toss, chaser_chose_to_chase,
+    batting_home, is_world_cup: is_wc
+  });
+
+  const prob = inn2Predict(features);
+
+  const overs_done = balls_bowled / 6;
+  const crr = overs_done > 0 ? (score / overs_done).toFixed(2) : '0.00';
+  const overs_rem = balls_remaining / 6;
+  const rrr = (runs_required / overs_rem).toFixed(2);
+  const over_str = `${Math.floor(balls_bowled / 6)}.${balls_bowled % 6}`;
+  const rem_str  = `${Math.floor(balls_remaining / 6)}.${balls_remaining % 6}`;
+
+  const chips = [
+    { label: `Need ${runs_required} off ${rem_str} overs`, highlight: true },
+    { label: `${wickets_remaining} wkts remaining`, highlight: true },
+    { label: `RRR: ${rrr}` },
+    { label: `CRR: ${crr}` },
+    ...(is_wc ? [{ label: '🏆 World Cup' }] : []),
+    ...(batting_home ? [{ label: '🏠 Home' }] : []),
+  ];
+
+  renderResult('i2-result', prob, 'Chasing team', 'Defending team', chips, 'inn2');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadModel();
+</script>
+</body>
+</html>
