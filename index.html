@@ -525,9 +525,7 @@ footer {
     </div>
     <h1>Women's T20I<br><em>Win Probability</em></h1>
     <p class="subtitle">
-      Ball-by-ball win probability for Women's T20 Internationals.
-      Trained on 634 Full Member matches (2009–2025) using separate
-      first and second innings models.
+      Win probability for Women's T20 Internationals.
     </p>
     <div class="status-bar loading" id="statusBar">
       ◌ &nbsp;Loading model…
@@ -686,13 +684,11 @@ footer {
   <footer>
     <div class="footer-left">
       <strong>Sports Intelligence</strong> · WT20I Win Probability v1.0<br>
-      634 Full Member matches · 2009–2025 · Ball-by-ball Cricsheet data
+      Used 2009–2025 · Ball-by-ball data
     </div>
     <div class="model-badges">
-      <span class="badge green">Inn1 AUC 0.749</span>
-      <span class="badge green">Inn2 AUC 0.930</span>
-      <span class="badge">XGBoost + LR</span>
-      <span class="badge">Isotonic calibration</span>
+      <span class="badge green">Inn1 Accuracy 75%</span>
+      <span class="badge green">Inn2 Accuracy 93%</span>
     </div>
   </footer>
 
@@ -908,7 +904,7 @@ async function loadModel() {
     MODEL = await resp.json();
 
     bar.className = 'status-bar';
-    bar.innerHTML = `&#10003;&nbsp; Model ready · Inn1 AUC ${MODEL.meta.inn1_auc} · Inn2 AUC ${MODEL.meta.inn2_auc}`;
+    bar.innerHTML = `&#10003;&nbsp; Inn1 AUC ${MODEL.meta.inn1_auc} · Inn2 AUC ${MODEL.meta.inn2_auc}`;
 
     document.getElementById('i1-btn').disabled = false;
     document.getElementById('i2-btn').disabled = false;
